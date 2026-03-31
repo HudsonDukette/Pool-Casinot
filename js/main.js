@@ -1,6 +1,6 @@
 import { initDashboard } from './dashboard.js'
 import { initRoulette } from './roulette.js'
-import { supabase } from '../lib/supabase.js'
+import { getSupabase } from '../lib/supabase.js'
 
 const pageButtons = Array.from(document.querySelectorAll('.nav-button[data-page], .game-tile[data-page] button, .game-tile[data-page]'))
 const pages = Array.from(document.querySelectorAll('.page-panel'))
@@ -56,6 +56,7 @@ function closeAuthModal() {
 
 async function setAuthStateFromUser(user) {
   try {
+    const supabase = await getSupabase()
     const { data, error } = await supabase.from('users').select('username').eq('id', user.id).single()
     const username = data?.username || (user.email ? user.email.split('@')[0] : 'PLAYER')
     profileName.textContent = username.toUpperCase()
@@ -74,18 +75,25 @@ function clearAuthState() {
   authActions.classList.remove('hidden')
 }
 
-// Listen for auth changes
-supabase.auth.onAuthStateChange((event, session) => {
-  if (session?.user) {
-    setAuthStateFromUser(session.user)
-    refreshPage(currentPage)
-  } else {
-    clearAuthState()
+// Listen for auth changes (register after supabase client loads)
+getSupabase().then((supabase) => {
+  try {
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (session?.user) {
+        setAuthStateFromUser(session.user)
+        refreshPage(currentPage)
+      } else {
+        clearAuthState()
+      }
+    })
+  } catch (e) {
+    // ignore
   }
 })
 
 async function restoreSession() {
   try {
+    const supabase = await getSupabase()
     const { data } = await supabase.auth.getUser()
     if (data?.user) {
       await setAuthStateFromUser(data.user)
@@ -99,6 +107,7 @@ async function loadLeaderboard() {
   if (!leaderboardTable) return
   leaderboardTable.innerHTML = `\n    <div class="table-row table-header">\n      <span>Rank</span>\n      <span>Username</span>\n      <span>Balance</span>\n      <span>Winnings</span>\n    </div>\n  `
   try {
+    const supabase = await getSupabase()
     const { data: players, error } = await supabase.from('users').select('username,balance').order('balance', { ascending: false }).limit(10)
     if (error) throw error
     players.forEach((player, index) => {
@@ -118,6 +127,7 @@ async function loadLeaderboard() {
 async function loadProfile() {
   if (!profileUsername) return
   try {
+    const supabase = await getSupabase()
     const { data: userData } = await supabase.auth.getUser()
     const user = userData?.user
     if (!user) throw new Error('Not logged in')
@@ -204,6 +214,7 @@ authForm.addEventListener('submit', async (event) => {
   const email = identifier.includes('@') ? identifier : `${identifier}@poolcasino.local`
 
   try {
+    const supabase = await getSupabase()
     if (authMode === 'signup') {
       // sign up then attempt to sign in so we get a session
       const { data: signupData, error: signupErr } = await supabase.auth.signUp({ email, password })
@@ -244,6 +255,7 @@ authForm.addEventListener('submit', async (event) => {
 // expose sign out via clicking username for now
 profileName.addEventListener('click', async () => {
   try {
+    const supabase = await getSupabase()
     await supabase.auth.signOut()
     clearAuthState()
     refreshPage(currentPage)

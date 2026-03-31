@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase.js'
+import { getSupabase } from '../lib/supabase.js'
 
 const canvas = document.getElementById('rouletteCanvas')
 const ctx = canvas.getContext('2d')
@@ -174,6 +174,7 @@ async function startSpin() {
   }
 
   try {
+    const supabase = await getSupabase()
     // get current user
     const { data: authData } = await supabase.auth.getUser()
     const user = authData?.user

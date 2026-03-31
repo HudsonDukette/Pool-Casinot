@@ -1,7 +1,8 @@
-import { supabase } from '../lib/supabase.js'
+import { getSupabase } from '../lib/supabase.js'
 
 async function fetchStats() {
   try {
+    const supabase = await getSupabase()
     const { data: stats, error: statsErr } = await supabase.from('global_stats').select('total_pool,biggest_win,biggest_bet').eq('id', 1).single()
     if (statsErr) throw statsErr
     const { data: recentWins, error: winsErr } = await supabase
