@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pool Casino</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style/main.css" />
+  <link rel="stylesheet" href="style/dashboard.css" />
+  <link rel="stylesheet" href="style/roulette.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="brand">
+          <span>POOL CASINO</span>
+        </div>
+        <nav class="nav-links">
+          <button class="nav-button active" data-page="dashboard">
+            <img src="assets/icons/dashboard.svg" alt="Dashboard icon" />
+            Dashboard
+          </button>
+          <div class="dropdown-wrapper">
+            <button class="nav-button dropdown-toggle" data-page="games">
+              <img src="assets/icons/games.svg" alt="Games icon" />
+              Games
+              <span class="dropdown-arrow">▼</span>
+            </button>
+            <div class="dropdown-menu" id="gamesDropdown">
+              <button class="dropdown-item" data-page="games">Roulette</button>
+              <button class="dropdown-item disabled">Multiplayer (Coming Soon)</button>
+              <button class="dropdown-item disabled">Player-Owned Casinos (Coming Soon)</button>
+            </div>
+          </div>
+          <button class="nav-button" data-page="leaderboard">
+            <img src="assets/icons/leaderboard.svg" alt="Leaderboard icon" />
+            Leaderboard
+          </button>
+          <button class="nav-button" data-page="profile">
+            <img src="assets/icons/profile.svg" alt="Profile icon" />
+            Profile
+          </button>
+        </nav>
+      </div>
+      <div class="topbar-right">
+        <div class="profile-ghost"></div>
+        <div class="auth-actions" id="authActions">
+          <button class="outline-button" id="loginButton">Log In</button>
+          <button class="outline-button" id="signupButton">Sign Up</button>
+        </div>
+        <div class="profile-name hidden" id="profileName">PLAYERONE</div>
+      </div>
+    </header>
+
+    <main class="content-shell">
+      <section class="page-panel" id="dashboardPage">
+        <div class="page-header">
+          <div>
+            <p class="eyebrow">Welcome to the pool</p>
+            <h1>Global casino interface</h1>
+          </div>
+          <div class="hero-stats">
+            <span>Live players: <strong>3,842</strong></span>
+            <span>House edge: <strong>2.7%</strong></span>
+          </div>
+        </div>
+        <div class="card-grid dashboard-grid">
+          <article class="info-card">
+            <h2>Global Pool</h2>
+            <p>Active wagers: <strong>1,195</strong></p>
+            <p>Pool liquidity: <strong>₿ 12.8M</strong></p>
+          </article>
+          <article class="info-card">
+            <h2>Featured Games</h2>
+            <p>Roulette Royale</p>
+            <p>Live Casino Lobby</p>
+          </article>
+          <article class="info-card">
+            <h2>Recent Wins</h2>
+            <p>JAZZMASTER +₿ 4.2k</p>
+            <p>NEONRUSH +₿ 8.7k</p>
+          </article>
+          <article class="info-card">
+            <h2>Biggest Bet & Win</h2>
+            <p>Bet: <strong>₿ 125k</strong></p>
+            <p>Win: <strong>₿ 487k</strong></p>
+          </article>
+        </div>
+      </section>
+
+      <section class="page-panel hidden" id="gamesPage">
+        <div class="page-header">
+          <div>
+            <p class="eyebrow">Games lobby</p>
+            <h1>Select your table</h1>
+          </div>
+        </div>
+        <div class="card-grid games-grid">
+          <article class="game-tile" data-page="roulette">
+            <img src="assets/icons/roulette.svg" alt="Roulette icon" />
+            <h3>Roulette</h3>
+            <p>Main playable wheel</p>
+            <button class="outline-button small-button" data-page="roulette">Play</button>
+          </article>
+          <article class="game-tile disabled">
+            <div class="placeholder-icon">?</div>
+            <h3>Blackjack</h3>
+            <p>Coming Soon</p>
+          </article>
+          <article class="game-tile disabled">
+            <div class="placeholder-icon">?</div>
+            <h3>Slots</h3>
+            <p>Coming Soon</p>
+          </article>
+          <article class="game-tile disabled">
+            <div class="placeholder-icon">?</div>
+            <h3>High Roller</h3>
+            <p>Coming Soon</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="page-panel hidden" id="leaderboardPage">
+        <div class="page-header">
+          <div>
+            <p class="eyebrow">Leaderboards</p>
+            <h1>Top performers</h1>
+          </div>
+        </div>
+        <div class="leaderboard-table">
+          <div class="table-row table-header">
+            <span>Rank</span>
+            <span>Username</span>
+            <span>Balance</span>
+            <span>Winnings</span>
+          </div>
+          <div class="table-row">
+            <span>01</span>
+            <span>NEONRUSH</span>
+            <span>₿ 184k</span>
+            <span>₿ 1.2M</span>
+          </div>
+          <div class="table-row">
+            <span>02</span>
+            <span>JAZZMASTER</span>
+            <span>₿ 142k</span>
+            <span>₿ 980k</span>
+          </div>
+          <div class="table-row">
+            <span>03</span>
+            <span>CASINOKING</span>
+            <span>₿ 123k</span>
+            <span>₿ 860k</span>
+          </div>
+          <div class="table-row">
+            <span>04</span>
+            <span>PLAYERONE</span>
+            <span>₿ 96k</span>
+            <span>₿ 730k</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="page-panel hidden" id="profilePage">
+        <div class="page-header">
+          <div>
+            <p class="eyebrow">Your profile</p>
+            <h1>Player dashboard</h1>
+          </div>
+        </div>
+        <div class="profile-grid">
+          <article class="profile-card">
+            <div class="profile-avatar"></div>
+            <h2>PLAYERONE</h2>
+            <p>Placeholder account</p>
+          </article>
+          <article class="profile-card stats-card">
+            <h3>Stats</h3>
+            <p>Level: <strong>15</strong></p>
+            <p>Balance: <strong>₿ 42.6k</strong></p>
+            <p>Lifetime Wins: <strong>214</strong></p>
+          </article>
+          <article class="profile-card activity-card">
+            <h3>Recent activity</h3>
+            <p>Roulette spin +₿ 2.4k</p>
+            <p>Placed bet ₿ 300</p>
+            <p>Unlocked achievement: Neon Streak</p>
+          </article>
+          <article class="profile-card achievement-card">
+            <h3>Achievements</h3>
+            <p>High Roller Badge</p>
+            <p>Lucky Streak</p>
+            <p>Pool VIP</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="page-panel hidden" id="roulettePage">
+        <div class="page-header">
+          <div>
+            <p class="eyebrow">Roulette table</p>
+            <h1>Spin the wheel</h1>
+          </div>
+        </div>
+        <div class="roulette-shell">
+          <div class="wheel-frame">
+            <canvas id="rouletteCanvas" width="520" height="520"></canvas>
+            <div class="wheel-pointer"></div>
+          </div>
+          <aside class="bet-panel">
+            <div class="panel-block">
+              <h2>Place your bet</h2>
+              <div class="bet-buttons">
+                <button class="bet-button red" data-bet="red">Red</button>
+                <button class="bet-button black" data-bet="black">Black</button>
+                <button class="bet-button green" data-bet="green">Green</button>
+                <button class="bet-button even" data-bet="even">Even</button>
+                <button class="bet-button odd" data-bet="odd">Odd</button>
+              </div>
+            </div>
+            <div class="panel-block">
+              <label for="betAmount">Bet amount</label>
+              <input id="betAmount" class="neon-input" type="number" min="1" placeholder="100" value="100" />
+            </div>
+            <div class="panel-block center">
+              <button id="spinButton" class="outline-button large-button">Spin</button>
+            </div>
+            <div class="panel-block result-block">
+              <h3>Result</h3>
+              <div class="result-lines">
+                <span>Winning number</span>
+                <strong id="winningNumber">-</strong>
+              </div>
+              <div class="result-lines">
+                <span>Message</span>
+                <strong id="resultMessage">Place your bet</strong>
+              </div>
+            </div>
+            <div class="panel-block stats-block">
+              <h3>Placeholder odds</h3>
+              <p>Red / Black payout: <strong>1:1</strong></p>
+              <p>Green payout: <strong>35:1</strong></p>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
