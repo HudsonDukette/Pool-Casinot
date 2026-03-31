@@ -1,12 +1,19 @@
+import { supabase } from '../lib/supabase.js'
+
 async function fetchStats() {
   try {
-    const response = await fetch('/api/stats');
-    if (!response.ok) {
-      throw new Error('Failed to load stats');
-    }
-    return response.json();
+    const { data: stats, error: statsErr } = await supabase.from('global_stats').select('total_pool,biggest_win,biggest_bet').eq('id', 1).single()
+    if (statsErr) throw statsErr
+    const { data: recentWins, error: winsErr } = await supabase
+      .from('game_history')
+      .select('bet_amount, result_number, bet_type, win, created_at, users(username)')
+      .eq('win', 1)
+      .order('created_at', { ascending: false })
+      .limit(4)
+    if (winsErr) throw winsErr
+    return { ...stats, recent_wins: recentWins || [] }
   } catch (error) {
-    return null;
+    return null
   }
 }
 

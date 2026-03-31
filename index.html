@@ -3,7 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="supabase-url" content="">
+  <meta name="supabase-anon-key" content="">
   <title>Pool Casino</title>
+  <script>
+    // Populate window vars from meta tags if not set at build-time.
+    try {
+      window.NEXT_PUBLIC_SUPABASE_URL = window.NEXT_PUBLIC_SUPABASE_URL || document.querySelector('meta[name="supabase-url"]')?.content || '';
+      window.NEXT_PUBLIC_SUPABASE_ANON_KEY = window.NEXT_PUBLIC_SUPABASE_ANON_KEY || document.querySelector('meta[name="supabase-anon-key"]')?.content || '';
+    } catch (e) {
+      // ignore
+    }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />

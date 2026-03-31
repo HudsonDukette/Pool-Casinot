@@ -1,10 +1,12 @@
-const canvas = document.getElementById('rouletteCanvas');
-const ctx = canvas.getContext('2d');
-const betButtons = Array.from(document.querySelectorAll('.bet-button'));
-const spinButton = document.getElementById('spinButton');
-const winningNumberNode = document.getElementById('winningNumber');
-const resultMessageNode = document.getElementById('resultMessage');
-const betAmountInput = document.getElementById('betAmount');
+import { supabase } from '../lib/supabase.js'
+
+const canvas = document.getElementById('rouletteCanvas')
+const ctx = canvas.getContext('2d')
+const betButtons = Array.from(document.querySelectorAll('.bet-button'))
+const spinButton = document.getElementById('spinButton')
+const winningNumberNode = document.getElementById('winningNumber')
+const resultMessageNode = document.getElementById('resultMessage')
+const betAmountInput = document.getElementById('betAmount')
 
 const numbers = [
   0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23,
@@ -138,7 +140,7 @@ function updateBall() {
 }
 
 function getToken() {
-  return localStorage.getItem('poolCasinoToken');
+  return localStorage.getItem('poolCasinoToken')
 }
 
 function computeResultColor(number) {
@@ -163,56 +165,87 @@ function bindBetButtons() {
 }
 
 async function startSpin() {
-  if (isSpinning) return;
-  const betAmount = Number(betAmountInput.value);
+  if (isSpinning) return
+  const betAmount = Number(betAmountInput.value)
   if (!betAmount || betAmount < 1) {
-    resultMessageNode.textContent = 'Enter a valid bet amount';
-    resultMessageNode.className = 'loss';
-    return;
-  }
-
-  const token = getToken();
-  if (!token) {
-    resultMessageNode.textContent = 'Log in to place a bet';
-    resultMessageNode.className = 'loss';
-    return;
+    resultMessageNode.textContent = 'Enter a valid bet amount'
+    resultMessageNode.className = 'loss'
+    return
   }
 
   try {
-    const response = await fetch('/api/roulette', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ bet_type: selectedBet, bet_amount: betAmount }),
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.message || 'Spin failed');
+    // get current user
+    const { data: authData } = await supabase.auth.getUser()
+    const user = authData?.user
+    if (!user) {
+      resultMessageNode.textContent = 'Log in to place a bet'
+      resultMessageNode.className = 'loss'
+      return
     }
 
-    const targetNumber = data.result_number;
-    resultIndex = numbers.indexOf(targetNumber);
-    if (resultIndex < 0) {
-      resultIndex = 0;
+    // fetch balance
+    const { data: userRow, error: balanceErr } = await supabase.from('users').select('balance').eq('id', user.id).single()
+    if (balanceErr || !userRow) throw balanceErr || new Error('Unable to load balance')
+    if (betAmount > userRow.balance) {
+      resultMessageNode.textContent = 'Insufficient balance'
+      resultMessageNode.className = 'loss'
+      return
     }
-    targetRotation = Math.PI * 12 + (Math.PI * 2 - resultIndex * segmentAngle - segmentAngle / 2);
-    currentRotation = 0;
-    isSpinning = true;
-    ballRadius = 250;
-    ballSpeed = 0.22;
-    spinStart = null;
 
-    winningNumberNode.textContent = targetNumber;
-    resultMessageNode.textContent = data.win ? 'Win! Collect your reward' : 'Loss. Try again.';
-    resultMessageNode.className = data.win ? 'win' : 'loss';
-    drawFrame();
-    requestAnimationFrame(updateSpin);
-    requestAnimationFrame(updateBall);
+    // choose result and compute win
+    const resultNumber = Math.floor(Math.random() * 37)
+    const win = (() => {
+      if (selectedBet === 'red' || selectedBet === 'black') {
+        const color = resultNumber === 0 ? 'green' : resultNumber % 2 === 0 ? 'black' : 'red'
+        return color === selectedBet
+      }
+      if (selectedBet === 'green') return resultNumber === 0
+      if (selectedBet === 'even') return resultNumber !== 0 && resultNumber % 2 === 0
+      if (selectedBet === 'odd') return resultNumber % 2 === 1
+      return false
+    })()
+
+    const payout = selectedBet === 'green' ? betAmount * 35 : betAmount
+    const profit = win ? payout : -betAmount
+    const newBalance = Number(userRow.balance) + profit
+
+    // update user's balance
+    const { error: updateErr } = await supabase.from('users').update({ balance: newBalance }).eq('id', user.id)
+    if (updateErr) throw updateErr
+
+    // insert game history
+    await supabase.from('game_history').insert({ user_id: user.id, game: 'roulette', result_number: resultNumber, bet_type: selectedBet, bet_amount: betAmount, win: win ? 1 : 0 })
+
+    // update global stats
+    const { data: stats } = await supabase.from('global_stats').select('total_pool,biggest_win,biggest_bet').eq('id', 1).single()
+    if (stats) {
+      const poolChange = win ? -profit : betAmount
+      const totalPool = (stats.total_pool || 0) + poolChange
+      const biggestWin = win && profit > (stats.biggest_win || 0) ? profit : stats.biggest_win
+      const biggestBet = betAmount > (stats.biggest_bet || 0) ? betAmount : stats.biggest_bet
+      await supabase.from('global_stats').update({ total_pool: totalPool, biggest_win: biggestWin, biggest_bet: biggestBet }).eq('id', 1)
+    }
+
+    // animate wheel
+    const targetNumber = resultNumber
+    resultIndex = numbers.indexOf(targetNumber)
+    if (resultIndex < 0) resultIndex = 0
+    targetRotation = Math.PI * 12 + (Math.PI * 2 - resultIndex * segmentAngle - segmentAngle / 2)
+    currentRotation = 0
+    isSpinning = true
+    ballRadius = 250
+    ballSpeed = 0.22
+    spinStart = null
+
+    winningNumberNode.textContent = targetNumber
+    resultMessageNode.textContent = win ? 'Win! Collect your reward' : 'Loss. Try again.'
+    resultMessageNode.className = win ? 'win' : 'loss'
+    drawFrame()
+    requestAnimationFrame(updateSpin)
+    requestAnimationFrame(updateBall)
   } catch (error) {
-    resultMessageNode.textContent = error.message;
-    resultMessageNode.className = 'loss';
+    resultMessageNode.textContent = error?.message || 'Spin failed'
+    resultMessageNode.className = 'loss'
   }
 }
 
