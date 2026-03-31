@@ -1,0 +1,16 @@
+{
+  "name": "pool-casino",
+  "version": "1.0.0",
+  "description": "Pool Casino neon frontend with Node.js backend and SQLite persistence.",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.4",
+    "jsonwebtoken": "^9.0.0",
+    "sqlite3": "^5.1.6"
+  }
+}

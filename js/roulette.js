@@ -10,14 +10,9 @@ const numbers = [
   0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23,
   10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26,
 ];
-
 const segmentCount = numbers.length;
 const segmentAngle = (Math.PI * 2) / segmentCount;
-const colors = {
-  red: '#ef4444',
-  black: '#111',
-  green: '#22c55e',
-};
+const colors = { red: '#ef4444', black: '#111', green: '#22c55e' };
 
 let selectedBet = 'red';
 let isSpinning = false;
@@ -29,6 +24,7 @@ let ballRadius = 250;
 let ballSpeed = 0.22;
 let targetRotation = 0;
 let resultIndex = 0;
+let isRouletteInitialized = false;
 
 function renderWheel() {
   const width = canvas.width;
@@ -45,12 +41,7 @@ function renderWheel() {
   for (let i = 0; i < segmentCount; i += 1) {
     const angle = i * segmentAngle;
     const number = numbers[i];
-    const isZero = number === 0;
-    const fillColor = isZero
-      ? colors.green
-      : i % 2 === 0
-      ? colors.black
-      : colors.red;
+    const fillColor = number === 0 ? colors.green : i % 2 === 0 ? colors.black : colors.red;
 
     ctx.beginPath();
     ctx.moveTo(0, 0);
@@ -76,7 +67,6 @@ function renderWheel() {
   }
 
   ctx.restore();
-
   ctx.beginPath();
   ctx.arc(centerX, centerY, outerRadius - 64, 0, Math.PI * 2);
   ctx.fillStyle = '#0a0b0f';
@@ -103,7 +93,7 @@ function renderBall() {
   ctx.beginPath();
   ctx.fillStyle = '#fafafa';
   ctx.shadowColor = 'rgba(255,255,255,0.9)';
-  ctx.shadowBlur = 24;
+  ctx.shadowBlur = 22;
   ctx.arc(x, y, 10, 0, Math.PI * 2);
   ctx.fill();
   ctx.shadowBlur = 0;
@@ -122,26 +112,24 @@ function updateSpin(timestamp) {
   if (!spinStart) spinStart = timestamp;
   const elapsed = timestamp - spinStart;
   const progress = Math.min(elapsed / spinDuration, 1);
-
   currentRotation = easeOutQuad(progress) * targetRotation;
 
   if (progress >= 1) {
     isSpinning = false;
     spinStart = null;
-    ballSpeed = 0.03;
+    ballSpeed = 0.04;
     return;
   }
-
   requestAnimationFrame(updateSpin);
 }
 
 function updateBall() {
   if (!isSpinning && ballRadius > 120) {
-    ballRadius -= 0.6;
+    ballRadius -= 0.7;
   }
   if (ballSpeed > 0.005) {
     ballAngle += ballSpeed;
-    ballSpeed *= 0.997;
+    ballSpeed *= 0.995;
   }
   drawFrame();
   if (isSpinning || ballRadius > 120) {
@@ -149,59 +137,13 @@ function updateBall() {
   }
 }
 
+function getToken() {
+  return localStorage.getItem('poolCasinoToken');
+}
+
 function computeResultColor(number) {
   if (number === 0) return 'green';
   return number % 2 === 0 ? 'black' : 'red';
-}
-
-function resolveBet(result, betType) {
-  if (betType === 'red' || betType === 'black') {
-    return computeResultColor(result) === betType;
-  }
-  if (betType === 'green') {
-    return result === 0;
-  }
-  if (betType === 'even') {
-    return result !== 0 && result % 2 === 0;
-  }
-  if (betType === 'odd') {
-    return result % 2 === 1;
-  }
-  return false;
-}
-
-function chooseResult() {
-  return Math.floor(Math.random() * segmentCount);
-}
-
-function startSpin() {
-  if (isSpinning) return;
-
-  const betAmount = Number(betAmountInput.value);
-  if (!betAmount || betAmount < 1) {
-    resultMessageNode.textContent = 'Enter a bet amount';
-    resultMessageNode.className = 'loss';
-    return;
-  }
-
-  resultIndex = chooseResult();
-  const resultNumber = numbers[resultIndex];
-  const resultColor = computeResultColor(resultNumber);
-  const won = resolveBet(resultNumber, selectedBet);
-
-  targetRotation = Math.PI * 12 + (Math.PI * 2 - resultIndex * segmentAngle - segmentAngle / 2);
-  currentRotation = 0;
-  isSpinning = true;
-  ballRadius = 250;
-  ballSpeed = 0.22;
-  spinStart = null;
-
-  winningNumberNode.textContent = resultNumber;
-  resultMessageNode.textContent = won ? 'Win! Collect your reward' : 'Loss. Try again.';
-  resultMessageNode.className = won ? 'win' : 'loss';
-
-  requestAnimationFrame(updateSpin);
-  requestAnimationFrame(updateBall);
 }
 
 function clearSelection() {
@@ -220,9 +162,66 @@ function bindBetButtons() {
   if (initial) initial.classList.add('selected');
 }
 
+async function startSpin() {
+  if (isSpinning) return;
+  const betAmount = Number(betAmountInput.value);
+  if (!betAmount || betAmount < 1) {
+    resultMessageNode.textContent = 'Enter a valid bet amount';
+    resultMessageNode.className = 'loss';
+    return;
+  }
+
+  const token = getToken();
+  if (!token) {
+    resultMessageNode.textContent = 'Log in to place a bet';
+    resultMessageNode.className = 'loss';
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/roulette', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ bet_type: selectedBet, bet_amount: betAmount }),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Spin failed');
+    }
+
+    const targetNumber = data.result_number;
+    resultIndex = numbers.indexOf(targetNumber);
+    if (resultIndex < 0) {
+      resultIndex = 0;
+    }
+    targetRotation = Math.PI * 12 + (Math.PI * 2 - resultIndex * segmentAngle - segmentAngle / 2);
+    currentRotation = 0;
+    isSpinning = true;
+    ballRadius = 250;
+    ballSpeed = 0.22;
+    spinStart = null;
+
+    winningNumberNode.textContent = targetNumber;
+    resultMessageNode.textContent = data.win ? 'Win! Collect your reward' : 'Loss. Try again.';
+    resultMessageNode.className = data.win ? 'win' : 'loss';
+    drawFrame();
+    requestAnimationFrame(updateSpin);
+    requestAnimationFrame(updateBall);
+  } catch (error) {
+    resultMessageNode.textContent = error.message;
+    resultMessageNode.className = 'loss';
+  }
+}
+
 export function initRoulette() {
   if (!canvas || !ctx) return;
-  bindBetButtons();
+  if (!isRouletteInitialized) {
+    isRouletteInitialized = true;
+    bindBetButtons();
+    spinButton.addEventListener('click', startSpin);
+  }
   drawFrame();
-  spinButton.addEventListener('click', startSpin);
 }

@@ -1,4 +1,16 @@
-export function initDashboard() {
+async function fetchStats() {
+  try {
+    const response = await fetch('/api/stats');
+    if (!response.ok) {
+      throw new Error('Failed to load stats');
+    }
+    return response.json();
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function initDashboard() {
   const placeholders = {
     globalPool: '₿ 12.8M',
     featured: ['Roulette Royale', 'Neon Blackjack'],
@@ -7,15 +19,39 @@ export function initDashboard() {
     biggestWin: '₿ 487k',
   };
 
-  const cardNodes = document.querySelectorAll('.info-card');
-  if (!cardNodes.length) return;
+  const globalPoolCard = document.getElementById('globalPoolCard');
+  const featuredCards = document.getElementById('featuredGamesCard');
+  const recentWinsCard = document.getElementById('recentWinsCard');
+  const biggestCard = document.getElementById('biggestBetWinCard');
 
-  cardNodes[0].querySelector('p:nth-of-type(1)').textContent = `Active wagers: 1,195`;
-  cardNodes[0].querySelector('p:nth-of-type(2)').textContent = `Pool liquidity: ${placeholders.globalPool}`;
-  cardNodes[1].querySelector('p:nth-of-type(1)').textContent = placeholders.featured[0];
-  cardNodes[1].querySelector('p:nth-of-type(2)').textContent = placeholders.featured[1];
-  cardNodes[2].querySelector('p:nth-of-type(1)').textContent = placeholders.recentWins[0];
-  cardNodes[2].querySelector('p:nth-of-type(2)').textContent = placeholders.recentWins[1];
-  cardNodes[3].querySelector('p:nth-of-type(1)').innerHTML = `Bet: <strong>${placeholders.biggestBet}</strong>`;
-  cardNodes[3].querySelector('p:nth-of-type(2)').innerHTML = `Win: <strong>${placeholders.biggestWin}</strong>`;
+  const stats = await fetchStats();
+  const poolValue = stats ? `₿ ${Number(stats.total_pool).toFixed(2)}` : placeholders.globalPool;
+  const biggestBet = stats ? `₿ ${Number(stats.biggest_bet).toFixed(2)}` : placeholders.biggestBet;
+  const biggestWin = stats ? `₿ ${Number(stats.biggest_win).toFixed(2)}` : placeholders.biggestWin;
+  const recentWins = stats && stats.recent_wins.length ? stats.recent_wins : null;
+
+  if (globalPoolCard) {
+    globalPoolCard.querySelector('p:nth-of-type(1)').textContent = `Active wagers: 1,195`;
+    globalPoolCard.querySelector('p:nth-of-type(2)').innerHTML = `Pool liquidity: <strong>${poolValue}</strong>`;
+  }
+
+  if (featuredCards) {
+    featuredCards.querySelector('p:nth-of-type(1)').textContent = placeholders.featured[0];
+    featuredCards.querySelector('p:nth-of-type(2)').textContent = placeholders.featured[1];
+  }
+
+  if (recentWinsCard) {
+    if (recentWins) {
+      recentWinsCard.querySelector('p:nth-of-type(1)').textContent = `${recentWins[0].username} +₿ ${Number(recentWins[0].bet_amount).toFixed(2)}`;
+      recentWinsCard.querySelector('p:nth-of-type(2)').textContent = `${recentWins[1] ? recentWins[1].username : recentWins[0].username} +₿ ${Number(recentWins[1] ? recentWins[1].bet_amount : recentWins[0].bet_amount).toFixed(2)}`;
+    } else {
+      recentWinsCard.querySelector('p:nth-of-type(1)').textContent = placeholders.recentWins[0];
+      recentWinsCard.querySelector('p:nth-of-type(2)').textContent = placeholders.recentWins[1];
+    }
+  }
+
+  if (biggestCard) {
+    biggestCard.querySelector('p:nth-of-type(1)').innerHTML = `Bet: <strong>${biggestBet}</strong>`;
+    biggestCard.querySelector('p:nth-of-type(2)').innerHTML = `Win: <strong>${biggestWin}</strong>`;
+  }
 }

@@ -68,22 +68,22 @@
           </div>
         </div>
         <div class="card-grid dashboard-grid">
-          <article class="info-card">
+          <article class="info-card" id="globalPoolCard">
             <h2>Global Pool</h2>
             <p>Active wagers: <strong>1,195</strong></p>
             <p>Pool liquidity: <strong>₿ 12.8M</strong></p>
           </article>
-          <article class="info-card">
+          <article class="info-card" id="featuredGamesCard">
             <h2>Featured Games</h2>
             <p>Roulette Royale</p>
             <p>Live Casino Lobby</p>
           </article>
-          <article class="info-card">
+          <article class="info-card" id="recentWinsCard">
             <h2>Recent Wins</h2>
             <p>JAZZMASTER +₿ 4.2k</p>
             <p>NEONRUSH +₿ 8.7k</p>
           </article>
-          <article class="info-card">
+          <article class="info-card" id="biggestBetWinCard">
             <h2>Biggest Bet & Win</h2>
             <p>Bet: <strong>₿ 125k</strong></p>
             <p>Win: <strong>₿ 487k</strong></p>
@@ -130,36 +130,12 @@
             <h1>Top performers</h1>
           </div>
         </div>
-        <div class="leaderboard-table">
+        <div class="leaderboard-table" id="leaderboardTable">
           <div class="table-row table-header">
             <span>Rank</span>
             <span>Username</span>
             <span>Balance</span>
             <span>Winnings</span>
-          </div>
-          <div class="table-row">
-            <span>01</span>
-            <span>NEONRUSH</span>
-            <span>₿ 184k</span>
-            <span>₿ 1.2M</span>
-          </div>
-          <div class="table-row">
-            <span>02</span>
-            <span>JAZZMASTER</span>
-            <span>₿ 142k</span>
-            <span>₿ 980k</span>
-          </div>
-          <div class="table-row">
-            <span>03</span>
-            <span>CASINOKING</span>
-            <span>₿ 123k</span>
-            <span>₿ 860k</span>
-          </div>
-          <div class="table-row">
-            <span>04</span>
-            <span>PLAYERONE</span>
-            <span>₿ 96k</span>
-            <span>₿ 730k</span>
           </div>
         </div>
       </section>
@@ -174,20 +150,22 @@
         <div class="profile-grid">
           <article class="profile-card">
             <div class="profile-avatar"></div>
-            <h2>PLAYERONE</h2>
-            <p>Placeholder account</p>
+            <h2 id="profileUsername">PLAYERONE</h2>
+            <p id="profileTagline">Placeholder account</p>
           </article>
           <article class="profile-card stats-card">
             <h3>Stats</h3>
-            <p>Level: <strong>15</strong></p>
-            <p>Balance: <strong>₿ 42.6k</strong></p>
-            <p>Lifetime Wins: <strong>214</strong></p>
+            <p>Level: <strong id="profileLevel">15</strong></p>
+            <p>Balance: <strong id="profileBalance">₿ 42.6k</strong></p>
+            <p>Lifetime Wins: <strong id="profileWins">214</strong></p>
           </article>
           <article class="profile-card activity-card">
             <h3>Recent activity</h3>
-            <p>Roulette spin +₿ 2.4k</p>
-            <p>Placed bet ₿ 300</p>
-            <p>Unlocked achievement: Neon Streak</p>
+            <div id="recentActivityList">
+              <p>Roulette spin +₿ 2.4k</p>
+              <p>Placed bet ₿ 300</p>
+              <p>Unlocked achievement: Neon Streak</p>
+            </div>
           </article>
           <article class="profile-card achievement-card">
             <h3>Achievements</h3>
@@ -248,6 +226,24 @@
         </div>
       </section>
     </main>
+  </div>
+  <div class="modal-overlay hidden" id="authModal">
+    <div class="auth-modal">
+      <button class="close-modal" id="closeModal" type="button">×</button>
+      <h2 id="authTitle">Log In</h2>
+      <form id="authForm">
+        <label>
+          Username
+          <input id="authUsername" type="text" autocomplete="username" />
+        </label>
+        <label>
+          Password
+          <input id="authPassword" type="password" autocomplete="current-password" />
+        </label>
+        <button class="outline-button large-button" type="submit" id="authSubmit">Continue</button>
+      </form>
+      <p class="auth-switch">Don’t have an account? <button type="button" id="toggleAuthMode">Sign Up</button></p>
+    </div>
   </div>
   <script type="module" src="js/main.js"></script>
 </body>
